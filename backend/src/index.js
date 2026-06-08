@@ -5,6 +5,7 @@ const { poolPromise } = require('./config/db');
 
 const authRoutes = require('./routes/auth.routes');
 const positionRoutes = require('./routes/position.routes');
+const userRoutes = require('./routes/user.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/positions', positionRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
     res.send('LMS Corporate API is running...');
