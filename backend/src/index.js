@@ -3,11 +3,15 @@ const express = require('express');
 const cors = require('cors');
 const { poolPromise } = require('./config/db');
 
+const authRoutes = require('./routes/auth.routes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send('LMS Corporate API is running...');
