@@ -12,6 +12,7 @@ const questionRoutes = require('./routes/question.routes');
 const progressRoutes = require('./routes/progress.routes');
 const testRoutes = require('./routes/test.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const operatorRoutes = require('./routes/operator.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +29,7 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/operator', operatorRoutes);
 
 app.get('/', (req, res) => {
     res.send('LMS Corporate API is running...');

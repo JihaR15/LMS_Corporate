@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 
-export default function OperatorHeader() {
+export default function OperatorHeader({ user }: { user: any }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -14,6 +14,10 @@ export default function OperatorHeader() {
       router.refresh();
     }
   };
+
+  const initials = user?.fullname
+    ? user.fullname.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+    : "OP";
 
   return (
     <header className="sticky top-0 z-50 flex justify-between items-center w-full px-8 h-16 bg-white shadow-sm border-b border-slate-200">
@@ -35,20 +39,18 @@ export default function OperatorHeader() {
             Dashboard
           </Link>
           <a href="#" className="text-slate-500 hover:text-primary transition-colors py-5 text-sm font-medium">Materi Saya</a>
-          <a href="#" className="text-slate-500 hover:text-primary transition-colors py-5 text-sm font-medium">Sertifikat</a>
         </nav>
         
         <div className="h-8 w-px bg-slate-200 mx-2"></div>
         
-        {/* Operator Profile Tag */}
         <div className="flex items-center gap-3 cursor-pointer group">
-          <div className="relative w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs border border-slate-300">
-            OP
+          <div className="relative w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700 text-xs border border-emerald-200">
+            {initials}
             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
           </div>
           <div className="flex flex-col sm:flex">
-            <span className="text-xs font-bold text-slate-800">Operator Sesi A</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Produksi Utama</span>
+            <span className="text-xs font-bold text-slate-800">{user?.fullname || "Operator"}</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">{user?.role || "Karyawan"}</span>
           </div>
         </div>
 
