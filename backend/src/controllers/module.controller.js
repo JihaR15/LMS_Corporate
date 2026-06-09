@@ -36,7 +36,10 @@ exports.getAllModules = async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.request().query(`
-            SELECT m.*, p.name as position_name 
+            SELECT 
+                m.*, 
+                p.name as position_name,
+                (SELECT COUNT(*) FROM Materials mat WHERE mat.module_id = m.id) AS materi_count
             FROM Modules m
             LEFT JOIN Positions p ON m.position_id = p.id
             ORDER BY m.id DESC
@@ -47,7 +50,6 @@ exports.getAllModules = async (req, res) => {
         res.status(500).json({ message: 'Gagal mengambil data modul' });
     }
 };
-
 // UPDATE
 exports.updateModule = async (req, res) => {
     try {

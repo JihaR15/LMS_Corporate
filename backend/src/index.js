@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { poolPromise } = require('./config/db');
 
+const path = require('path');
+
 const authRoutes = require('./routes/auth.routes');
 const positionRoutes = require('./routes/position.routes');
 const userRoutes = require('./routes/user.routes');
@@ -30,6 +32,7 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/operator', operatorRoutes);
+app.use('/api/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (req, res) => {
     res.send('LMS Corporate API is running...');

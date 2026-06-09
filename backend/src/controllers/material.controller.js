@@ -3,7 +3,8 @@ const { poolPromise, sql } = require('../config/db');
 // CREATE
 exports.createMaterial = async (req, res) => {
     try {
-        const { module_id, title, type, file_url, sequence_order } = req.body;
+        const { module_id, title, type, sequence_order } = req.body;
+        const file_url = req.file ? `/uploads/${req.file.filename}` : null;
 
         if (!module_id || !title || !type || !file_url || !sequence_order) {
             return res.status(400).json({ message: 'Semua field materi wajib diisi' });
@@ -11,11 +12,11 @@ exports.createMaterial = async (req, res) => {
 
         const pool = await poolPromise;
         const result = await pool.request()
-            .input('module_id', sql.INT, module_id)
+            .input('module_id', sql.INT, parseInt(module_id))
             .input('title', sql.NVARCHAR, title)
             .input('type', sql.NVARCHAR, type)
             .input('file_url', sql.NVARCHAR, file_url)
-            .input('sequence_order', sql.INT, sequence_order)
+            .input('sequence_order', sql.INT, parseInt(sequence_order))
             .query(`
                 INSERT INTO Materials (module_id, title, type, file_url, sequence_order)
                 OUTPUT INSERTED.*
