@@ -1,6 +1,64 @@
 import React from "react";
+import { cookies } from "next/headers";
 
-export default function AdminDashboardPage() {
+async function getDashboardStatsData() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
+    const result = await response.json();
+    return result.data || { total_karyawan: 0, total_modul: 0, ujian_lulus: 0 };
+  } catch (error) {
+    return { total_karyawan: 0, total_modul: 0, ujian_lulus: 0 };
+  }
+}
+
+async function getRecentActivitiesData() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/progress/recent`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function getPopularModulesData() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/popular`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store", 
+    });
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+export default async function AdminDashboardPage() {
+  const [stats, recentActivities, popularModules] = await Promise.all([
+    getDashboardStatsData(),
+    getRecentActivitiesData(),
+    getPopularModulesData(),
+  ]);
+
   return (
     <div className="space-y-6">
       {/* 1. Welcome Section */}
@@ -33,21 +91,21 @@ export default function AdminDashboardPage() {
 
       {/* 2. Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stat Card 1 */}
+        {/* Stat Card 1 (Masih Statis) */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Total Karyawan
             </p>
-            <h3 className="text-4xl font-bold text-slate-800">1,284</h3>
+            <h3 className="text-4xl font-bold text-slate-800">{stats.total_karyawan}</h3>
             <p
               className="text-sm font-medium flex items-center gap-1 mt-2"
               style={{ color: "var(--primary)" }}
             >
               <span className="material-symbols-outlined text-[18px]">
-                trending_up
+                group
               </span>
-              +12% dari bulan lalu
+              Operator Terdaftar
             </p>
           </div>
           <div className="bg-emerald-100 p-3 rounded-xl">
@@ -57,18 +115,20 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Stat Card 2 */}
+        {/* Stat Card 2 (SUDAH DINAMIS) */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Modul Tersedia
             </p>
-            <h3 className="text-4xl font-bold text-slate-800">86</h3>
+            <h3 className="text-4xl font-bold text-slate-800">
+              {stats.total_modul}
+            </h3>
             <p className="text-sm font-medium text-slate-500 flex items-center gap-1 mt-2">
               <span className="material-symbols-outlined text-[18px]">
                 library_books
               </span>
-              6 Modul baru minggu ini
+              Kurikulum pelatihan aktif
             </p>
           </div>
           <div className="bg-blue-50 p-3 rounded-xl">
@@ -78,13 +138,13 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Stat Card 3 */}
+        {/* Stat Card 3 (Masih Statis) */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Ujian Diselesaikan
             </p>
-            <h3 className="text-4xl font-bold text-slate-800">4,921</h3>
+            <h3 className="text-4xl font-bold text-slate-800">{stats.ujian_lulus}</h3>
             <p
               className="text-sm font-medium flex items-center gap-1 mt-2"
               style={{ color: "var(--primary)" }}
@@ -92,7 +152,7 @@ export default function AdminDashboardPage() {
               <span className="material-symbols-outlined text-[18px]">
                 check_circle
               </span>
-              94.2% Tingkat Kelulusan
+              Total Kelulusan Post-Test
             </p>
           </div>
           <div className="bg-orange-50 p-3 rounded-xl">
@@ -125,48 +185,69 @@ export default function AdminDashboardPage() {
                   <th className="px-6 py-4 font-semibold">Karyawan</th>
                   <th className="px-6 py-4 font-semibold">Modul</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold">Skor</th>
+                  <th className="px-6 py-4 font-semibold">Waktu</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
-                      AS
-                    </div>
-                    <span className="font-medium text-slate-800">
-                      Agus Setiawan
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    SOP Pasteurisasi
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
-                      SELESAI
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-800">95/100</td>
-                </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
-                      RM
-                    </div>
-                    <span className="font-medium text-slate-800">
-                      Rina Melati
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    Kesehatan Kerja
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                      PROSES
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-400">-</td>
-                </tr>
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity: any, index: number) => {
+                    const initials = activity.employee_name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase();
+
+                    return (
+                      <tr
+                        key={index}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
+                            {initials}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">
+                              {activity.employee_name}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {activity.nik}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {activity.module_title}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
+                            SELESAI
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-500 text-xs">
+                          {new Date(activity.completed_at).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-6 py-8 text-center text-slate-500 text-sm"
+                    >
+                      Belum ada aktivitas karyawan tercatat.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -175,48 +256,28 @@ export default function AdminDashboardPage() {
         {/* Progress Sidebar (1 Kolom) */}
         <div className="flex flex-col gap-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-1">
-            <h4 className="text-lg font-bold text-slate-800 mb-6">
-              Progress Modul Populer
-            </h4>
+            <h4 className="text-lg font-bold text-slate-800 mb-6">Progress Modul Populer</h4>
             <div className="space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Dasar Peternakan
-                  </span>
-                  <span
-                    className="text-xs font-bold"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    85%
-                  </span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "85%", backgroundColor: "var(--primary)" }}
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Standar Higienitas
-                  </span>
-                  <span
-                    className="text-xs font-bold"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    62%
-                  </span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "62%", backgroundColor: "var(--primary)" }}
-                  ></div>
-                </div>
-              </div>
+
+              {popularModules.length > 0 ? (
+                popularModules.map((mod: any, index: number) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700 truncate pr-4">{mod.title}</span>
+                      <span className="text-xs font-bold" style={{ color: "var(--primary)" }}>{mod.progress_percentage}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-1000" 
+                        style={{ width: `${mod.progress_percentage}%`, backgroundColor: "var(--primary)" }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-slate-500 text-center py-4">Belum ada data modul populer.</div>
+              )}
+
             </div>
           </div>
         </div>

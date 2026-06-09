@@ -66,3 +66,29 @@ exports.checkModuleProgress = async (req, res) => {
         res.status(500).json({ message: 'Gagal mengecek progress modul' });
     }
 };
+
+// READ - Khusus Admin: Ambil aktivitas terbaru semua karyawan
+exports.getRecentActivities = async (req, res) => {
+    try {
+        const pool = await poolPromise;
+
+        const result = await pool.request().query(`
+            SELECT TOP 5
+                u.fullname AS employee_name,
+                u.nik,
+                mod.title AS module_title,
+                up.completed_at
+            FROM User_Progress up
+            JOIN Users u ON up.user_id = u.id
+            JOIN Materials m ON up.material_id = m.id
+            JOIN Modules mod ON m.module_id = mod.id
+            WHERE up.is_completed = 1 
+            ORDER BY up.completed_at DESC
+        `);
+
+        res.json({ data: result.recordset });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal mengambil aktivitas terbaru' });
+    }
+};
