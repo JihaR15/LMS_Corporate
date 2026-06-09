@@ -1,6 +1,23 @@
 import React from "react";
 import { cookies } from "next/headers";
 
+async function getUserProfile() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    return null;
+  }
+}
+
 async function getDashboardStatsData() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -41,10 +58,13 @@ async function getPopularModulesData() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/popular`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store", 
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dashboard/popular`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
     const result = await response.json();
     return result.data || [];
   } catch (error) {
@@ -53,10 +73,11 @@ async function getPopularModulesData() {
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, recentActivities, popularModules] = await Promise.all([
+  const [stats, recentActivities, popularModules, userProfile] = await Promise.all([
     getDashboardStatsData(),
     getRecentActivitiesData(),
     getPopularModulesData(),
+    getUserProfile(),
   ]);
 
   return (
@@ -65,7 +86,7 @@ export default async function AdminDashboardPage() {
       <div className="relative overflow-hidden rounded-2xl bg-emerald-50 border border-emerald-100 p-8 flex flex-col md:flex-row justify-between items-center shadow-sm">
         <div className="z-10 max-w-2xl">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Selamat Datang, Administrator Utama
+            Selamat Datang, {userProfile?.fullname || "Admin"}
           </h1>
           <p className="text-slate-600 text-lg mb-6">
             Pantau perkembangan kompetensi karyawan dan kelola kurikulum
@@ -97,7 +118,9 @@ export default async function AdminDashboardPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Total Karyawan
             </p>
-            <h3 className="text-4xl font-bold text-slate-800">{stats.total_karyawan}</h3>
+            <h3 className="text-4xl font-bold text-slate-800">
+              {stats.total_karyawan}
+            </h3>
             <p
               className="text-sm font-medium flex items-center gap-1 mt-2"
               style={{ color: "var(--primary)" }}
@@ -144,7 +167,9 @@ export default async function AdminDashboardPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Ujian Diselesaikan
             </p>
-            <h3 className="text-4xl font-bold text-slate-800">{stats.ujian_lulus}</h3>
+            <h3 className="text-4xl font-bold text-slate-800">
+              {stats.ujian_lulus}
+            </h3>
             <p
               className="text-sm font-medium flex items-center gap-1 mt-2"
               style={{ color: "var(--primary)" }}
@@ -256,28 +281,40 @@ export default async function AdminDashboardPage() {
         {/* Progress Sidebar (1 Kolom) */}
         <div className="flex flex-col gap-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-1">
-            <h4 className="text-lg font-bold text-slate-800 mb-6">Progress Modul Populer</h4>
+            <h4 className="text-lg font-bold text-slate-800 mb-6">
+              Progress Modul Populer
+            </h4>
             <div className="space-y-6">
-
               {popularModules.length > 0 ? (
                 popularModules.map((mod: any, index: number) => (
                   <div key={index}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-slate-700 truncate pr-4">{mod.title}</span>
-                      <span className="text-xs font-bold" style={{ color: "var(--primary)" }}>{mod.progress_percentage}%</span>
+                      <span className="text-sm font-medium text-slate-700 truncate pr-4">
+                        {mod.title}
+                      </span>
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: "var(--primary)" }}
+                      >
+                        {mod.progress_percentage}%
+                      </span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-1000" 
-                        style={{ width: `${mod.progress_percentage}%`, backgroundColor: "var(--primary)" }}
+                      <div
+                        className="h-full rounded-full transition-all duration-1000"
+                        style={{
+                          width: `${mod.progress_percentage}%`,
+                          backgroundColor: "var(--primary)",
+                        }}
                       ></div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-slate-500 text-center py-4">Belum ada data modul populer.</div>
+                <div className="text-sm text-slate-500 text-center py-4">
+                  Belum ada data modul populer.
+                </div>
               )}
-
             </div>
           </div>
         </div>

@@ -1,18 +1,29 @@
-import AdminSidebar from "../components/layouts/AdminSidebar";
-import AdminHeader from "../components/layouts/AdminHeader";
+import { cookies } from "next/headers";
+import AdminLayoutClient from "./AdminLayoutClient";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+async function getUserProfile() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    return null;
+  }
+}
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getUserProfile();
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AdminSidebar />
-      <AdminHeader />
-      
-      {/* Area Konten Utama: Memberikan margin kiri selebar sidebar dan margin atas selebar header */}
-      <main className="ml-70 pt-16 min-h-screen">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <AdminLayoutClient user={user}>
+      {children}
+    </AdminLayoutClient>
   );
 }

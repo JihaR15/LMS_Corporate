@@ -47,3 +47,22 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Terjadi kesalahan pada server' });
     }
 };
+
+exports.getMe = async (req, res) => {
+    try {
+        const pool = await poolPromise;
+
+        const result = await pool.request()
+            .input('id', sql.INT, req.user.id)
+            .query('SELECT fullname, role FROM Users WHERE id = @id');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'User tidak ditemukan' });
+        }
+
+        res.json({ data: result.recordset[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal mengambil data user' });
+    }
+};
