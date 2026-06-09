@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import ModuleFormModal from "./ModuleFormModal";
 import UploadMaterialModal from "./UploadMaterialModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
@@ -31,6 +32,8 @@ export default function ModuleClient({
   initialPositions,
   token,
 }: ModuleClientProps) {
+  const router = useRouter();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -255,8 +258,20 @@ export default function ModuleClient({
                       </div>
                     </td>
 
-                    <td className="px-6 py-5 text-right">
+<td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">
+                        {/* --- TOMBOL KELOLA KUIS BARU --- */}
+                        <button
+                          onClick={() => router.push(`/admin/modules/${mod.id}/quiz`)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                          title="Kelola Kuis (Post-Test)"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            quiz
+                          </span>
+                        </button>
+                        
+                        {/* Tombol Kelola Materi */}
                         <button
                           onClick={() => handleOpenViewModal(mod)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
@@ -266,6 +281,8 @@ export default function ModuleClient({
                             list_alt
                           </span>
                         </button>
+
+                        {/* Tombol Edit Modul */}
                         <button
                           onClick={() => handleOpenEditModal(mod)}
                           className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
@@ -275,6 +292,8 @@ export default function ModuleClient({
                             edit
                           </span>
                         </button>
+
+                        {/* Tombol Hapus Modul */}
                         <button
                           onClick={() => handleOpenDeleteModal(mod.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
