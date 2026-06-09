@@ -22,3 +22,6 @@ yarn-error.log*
 # OS Files (Zorin/Linux/Windows)
 .DS_Store
 Thumbs.db
+
+# Dokumen Modul
+uploads

@@ -38,6 +38,7 @@ exports.checkModuleProgress = async (req, res) => {
 
         const pool = await poolPromise;
 
+        // Query 1: Ambil jumlah total dan yang selesai
         const result = await pool.request()
             .input('module_id', sql.INT, module_id)
             .input('user_id', sql.INT, user_id)
@@ -49,7 +50,19 @@ exports.checkModuleProgress = async (req, res) => {
                      WHERE m.module_id = @module_id AND up.user_id = @user_id AND up.is_completed = 1) as completed_materials
             `);
 
+        // Query 2: Ambil spesifik ID materinya buat frontend
+        const idsResult = await pool.request()
+            .input('module_id', sql.INT, module_id)
+            .input('user_id', sql.INT, user_id)
+            .query(`
+                SELECT m.id 
+                FROM User_Progress up
+                JOIN Materials m ON up.material_id = m.id
+                WHERE m.module_id = @module_id AND up.user_id = @user_id AND up.is_completed = 1
+            `);
+
         const progress = result.recordset[0];
+        const completed_ids = idsResult.recordset.map(row => row.id);
         
         const isUnlocked = (progress.total_materials > 0) && (progress.total_materials === progress.completed_materials);
 
@@ -57,6 +70,7 @@ exports.checkModuleProgress = async (req, res) => {
             data: {
                 total_materials: progress.total_materials,
                 completed_materials: progress.completed_materials,
+                completed_material_ids: completed_ids,
                 is_post_test_unlocked: isUnlocked
             }
         });
