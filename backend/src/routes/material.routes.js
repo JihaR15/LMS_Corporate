@@ -27,5 +27,7 @@ router.use(verifyToken);
 router.get('/module/:module_id', materialController.getMaterialsByModule);
 router.post('/', isAdmin, upload.single('file'), materialController.createMaterial);
 router.delete('/:id', isAdmin, materialController.deleteMaterial);
+router.put('/reorder', isAdmin, materialController.reorderMaterials);
+router.put('/:id', isAdmin, upload.single('file'), materialController.updateMaterial);
 
 module.exports = router;

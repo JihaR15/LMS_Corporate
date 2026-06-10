@@ -53,7 +53,6 @@ export default function LearnClient({
     }
   }, []);
 
-  // Perbaikan bug sidebar: Jika activeMaterialId masih null (frame ke-1), gunakan ID materi pertama
   const currentActiveId = activeMaterialId || sortedMaterials[0]?.id;
   const activeMaterial = sortedMaterials.find((m) => m.id === currentActiveId);
   const currentIndex = sortedMaterials.findIndex(
@@ -65,12 +64,29 @@ export default function LearnClient({
       ? Math.round((completedIds.length / materials.length) * 100)
       : 0;
 
+  // --- SMART URL HELPER ---
+  const getRenderUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url; 
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL}${url}`; 
+  };
+
+  const isYouTubeUrl = (url: string) => {
+    return url.includes("youtube.com") || url.includes("youtu.be");
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    return url.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/");
+  };
+  // ------------------------
+
   const handleComplete = async () => {
     if (!activeMaterial || isSubmitting) return;
     setIsSubmitting(true);
 
     try {
-      // 1. Tembak API Database Progress (Perhatikan tambahan /complete di akhir URL)
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/progress/complete`,
         {
@@ -84,12 +100,10 @@ export default function LearnClient({
       );
 
       if (res.ok) {
-        // 2. Update layar UI jika berhasil tersimpan
         if (!completedIds.includes(activeMaterial.id)) {
           setCompletedIds([...completedIds, activeMaterial.id]);
         }
 
-        // 3. Auto-next ke materi berikutnya
         if (currentIndex < sortedMaterials.length - 1) {
           setActiveMaterialId(sortedMaterials[currentIndex + 1].id);
         } else {
@@ -98,7 +112,6 @@ export default function LearnClient({
 
         router.refresh();
       } else {
-        // Pengecekan aman agar tidak crash jika balasan server bukan JSON
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           const errorData = await res.json();
@@ -164,7 +177,7 @@ export default function LearnClient({
             {activeMaterial ? (
               activeMaterial.type === "pdf" ? (
                 <object
-                  data={`${process.env.NEXT_PUBLIC_API_URL}${activeMaterial.file_url}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
+                  data={`${getRenderUrl(activeMaterial.file_url)}${activeMaterial.file_url.startsWith("http") ? "" : "#toolbar=1&navpanes=1&scrollbar=1&view=FitH"}`}
                   type="application/pdf"
                   className="w-full h-full bg-slate-100"
                 >
@@ -176,17 +189,28 @@ export default function LearnClient({
                       Browser Anda tidak mendukung pratinjau PDF langsung.
                     </p>
                     <a
-                      href={`${process.env.NEXT_PUBLIC_API_URL}${activeMaterial.file_url}`}
+                      href={getRenderUrl(activeMaterial.file_url)}
                       download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold"
                     >
-                      Unduh Dokumen PDF
+                      Buka Dokumen PDF
                     </a>
                   </div>
                 </object>
+              ) : isYouTubeUrl(activeMaterial.file_url) ? (
+                // IFRAME KHUSUS YOUTUBE
+                <iframe
+                  src={getYouTubeEmbedUrl(activeMaterial.file_url)}
+                  className="w-full h-full border-none"
+                  allowFullScreen
+                  title={activeMaterial.title}
+                />
               ) : (
+                // VIDEO LOKAL ATAU MP4 LINK
                 <video
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${activeMaterial.file_url}`}
+                  src={getRenderUrl(activeMaterial.file_url)}
                   controls
                   controlsList="nodownload"
                   className="w-full h-full object-contain bg-black"
@@ -364,7 +388,8 @@ export default function LearnClient({
           </div>
         </aside>
       </main>
-{/* MODAL PERAYAAN SELESAI MODUL */}
+
+      {/* MODAL PERAYAAN SELESAI MODUL */}
       <div
         className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-100 flex items-center justify-center transition-all duration-300 ${
           isCompleteModalOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -376,7 +401,6 @@ export default function LearnClient({
           }`}
         >
           <div className="p-8 flex flex-col items-center text-center">
-            {/* Ikon Perayaan */}
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-5 border-[6px] border-emerald-100/50">
               <span className="material-symbols-outlined text-emerald-600 text-[40px]">
                 emoji_events
