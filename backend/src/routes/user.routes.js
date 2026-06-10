@@ -9,5 +9,6 @@ router.post('/', userController.createUser);
 router.get('/operators', userController.getAllOperators);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deactivateUser); // Menggunakan soft-delete
+router.get('/:id/rapor', userController.getUserRapor);
 
 module.exports = router;

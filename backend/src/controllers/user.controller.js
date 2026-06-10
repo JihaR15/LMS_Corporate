@@ -124,3 +124,67 @@ exports.deactivateUser = async (req, res) => {
         res.status(500).json({ message: 'Gagal menonaktifkan akun operator' });
     }
 };
+
+// GET USER RAPOR (PROGRESS & NILAI KUIS)
+exports.getUserRapor = async (req, res) => {
+    try {
+        const { id } = req.params; // ID user (operator)
+        const pool = await poolPromise;
+
+        const result = await pool.request()
+            .input('user_id', sql.INT, id)
+            .query(`
+                -- 1. Deteksi Jabatan (Position_ID) milik user ini
+                DECLARE @UserPosition INT;
+                SELECT @UserPosition = position_id FROM Users WHERE id = @user_id;
+
+                -- 2. Ambil data modul yang KHUSUS untuk jabatannya atau yang bersifat GLOBAL (NULL)
+                SELECT 
+                    m.id AS module_id,
+                    m.title AS module_name,
+                    m.passing_score,
+                    
+                    -- Hitung total materi
+                    (SELECT COUNT(*) FROM Materials mat WHERE mat.module_id = m.id) AS total_materials,
+                    
+                    -- Hitung progres
+                    (SELECT COUNT(*) FROM User_Progress up 
+                     INNER JOIN Materials mat ON up.material_id = mat.id 
+                     WHERE mat.module_id = m.id AND up.user_id = @user_id) AS completed_materials,
+                     
+                    -- Ambil nilai ujian TERBARU (Hanya gunakan ORDER BY id DESC)
+                    (SELECT TOP 1 score FROM Test_Results WHERE module_id = m.id AND user_id = @user_id ORDER BY id DESC) AS post_test_score,
+                    (SELECT TOP 1 is_passed FROM Test_Results WHERE module_id = m.id AND user_id = @user_id ORDER BY id DESC) AS is_passed
+                FROM Modules m
+                WHERE (m.position_id = @UserPosition OR m.position_id IS NULL)
+                ORDER BY m.id ASC
+            `);
+
+        // Format data
+        const formattedData = result.recordset.map(row => {
+            let progressPercentage = 0;
+            if (row.total_materials > 0) {
+                progressPercentage = Math.round((row.completed_materials / row.total_materials) * 100);
+            }
+
+            let status = 'Belum Mulai';
+            if (progressPercentage > 0 && progressPercentage < 100) status = 'Sedang Berjalan';
+            if (progressPercentage === 100 && row.post_test_score === null) status = 'Menunggu Ujian';
+            
+            // Evaluasi strict agar mendukung format boolean (true/false) atau integer (1/0) SQL
+            if (row.is_passed === 1 || row.is_passed === true) status = 'Lulus';
+            if (row.is_passed === 0 || row.is_passed === false) status = 'Tidak Lulus';
+
+            return {
+                ...row,
+                progress_percentage: progressPercentage,
+                status: status
+            };
+        });
+
+        res.json({ data: formattedData });
+    } catch (error) {
+        console.error("Error getUserRapor:", error);
+        res.status(500).json({ message: 'Gagal mengambil data rapor pengguna' });
+    }
+};
