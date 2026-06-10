@@ -15,7 +15,17 @@ exports.getOperatorDashboardData = async (req, res) => {
                     (SELECT COUNT(*) FROM Materials mat WHERE mat.module_id = m.id) AS total_materials,
                     (SELECT COUNT(*) FROM User_Progress up 
                      JOIN Materials mat ON up.material_id = mat.id 
-                     WHERE mat.module_id = m.id AND up.user_id = @user_id AND up.is_completed = 1) AS completed_materials
+                     WHERE mat.module_id = m.id AND up.user_id = @user_id AND up.is_completed = 1) AS completed_materials,
+                    (SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END 
+                     FROM Test_Results 
+                     WHERE user_id = @user_id AND module_id = m.id AND is_passed = 1) AS is_test_passed,
+                    (SELECT MAX(score) FROM Test_Results 
+                     WHERE user_id = @user_id AND module_id = m.id AND is_passed = 1) AS test_score,
+                     
+                    -- TAMBAHKAN BARIS INI UNTUK MENGAMBIL JUMLAH PERCOBAAN
+                    (SELECT MAX(attempt) FROM Test_Results 
+                     WHERE user_id = @user_id AND module_id = m.id) AS test_attempt
+
                 FROM Modules m
                 WHERE m.position_id = (SELECT position_id FROM Users WHERE id = @user_id)
             `);

@@ -54,7 +54,16 @@ exports.getMe = async (req, res) => {
 
         const result = await pool.request()
             .input('id', sql.INT, req.user.id)
-            .query('SELECT fullname, role FROM Users WHERE id = @id');
+            .query(`
+                SELECT 
+                    u.fullname, 
+                    u.role, 
+                    u.position_id, 
+                    p.name AS position_name 
+                FROM Users u
+                LEFT JOIN Positions p ON u.position_id = p.id
+                WHERE u.id = @id
+            `);
 
         if (result.recordset.length === 0) {
             return res.status(404).json({ message: 'User tidak ditemukan' });
