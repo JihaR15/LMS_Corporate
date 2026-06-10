@@ -228,3 +228,38 @@ exports.deleteBulkQuestions = async (req, res) => {
         res.status(500).json({ message: 'Gagal menghapus soal massal' });
     }
 };
+
+exports.updateQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { question_text, answers } = req.body;
+
+        if (!question_text || !answers || answers.length === 0) {
+            return res.status(400).json({ message: 'Teks pertanyaan dan jawaban harus diisi' });
+        }
+
+        const pool = await poolPromise;
+
+        // 1. Update Teks Pertanyaan
+        await pool.request()
+            .input('id', sql.INT, id)
+            .input('question_text', sql.NVARCHAR(sql.MAX), question_text)
+            .query('UPDATE Questions SET question_text = @question_text WHERE id = @id');
+
+        // 2. Update Pilihan Jawaban (Looping berdasarkan ID jawaban)
+        for (const ans of answers) {
+            if (ans.id) {
+                await pool.request()
+                    .input('id', sql.INT, ans.id)
+                    .input('answer_text', sql.NVARCHAR(sql.MAX), ans.answer_text)
+                    .input('is_correct', sql.BIT, ans.is_correct ? 1 : 0)
+                    .query('UPDATE Answers SET answer_text = @answer_text, is_correct = @is_correct WHERE id = @id');
+            }
+        }
+
+        res.json({ message: 'Soal berhasil diperbarui' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal memperbarui soal' });
+    }
+};

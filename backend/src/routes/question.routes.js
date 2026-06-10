@@ -29,5 +29,6 @@ router.post('/', isAdmin, questionController.createQuestionWithAnswers);
 router.post('/import', isAdmin, upload.single('excel_file'), questionController.importQuestionsFromExcel);
 router.post('/bulk-delete', isAdmin, questionController.deleteBulkQuestions);
 router.delete('/:id', isAdmin, questionController.deleteQuestion);
+router.put('/:id', questionController.updateQuestion);
 
 module.exports = router;

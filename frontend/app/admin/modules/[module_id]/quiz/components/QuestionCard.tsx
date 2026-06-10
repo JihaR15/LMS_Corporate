@@ -21,9 +21,17 @@ interface QuestionCardProps {
   isSelected: boolean;
   onToggleSelect: (id: number) => void;
   onDeleteClick: (id: number) => void;
+  onEditClick: (question: QuestionData) => void; // Tambahan prop edit
 }
 
-export default function QuestionCard({ question, index, isSelected, onToggleSelect, onDeleteClick }: QuestionCardProps) {
+export default function QuestionCard({ 
+  question, 
+  index, 
+  isSelected, 
+  onToggleSelect, 
+  onDeleteClick, 
+  onEditClick 
+}: QuestionCardProps) {
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-200 ${
       isSelected ? "border-emerald-500 ring-1 ring-emerald-500" : "border-slate-200 hover:border-emerald-300"
@@ -46,10 +54,18 @@ export default function QuestionCard({ question, index, isSelected, onToggleSele
               <h3 className="text-lg font-bold text-slate-800 leading-snug">{question.question_text}</h3>
             </div>
           </div>
-          <div className="flex gap-1 shrink-0">
+          <div className="flex gap-2 shrink-0">
+            {/* Tombol Edit Baru */}
+            <button 
+              onClick={() => onEditClick(question)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
+              title="Edit Soal"
+            >
+              <span className="material-symbols-outlined text-[20px]">edit</span>
+            </button>
             <button 
               onClick={() => onDeleteClick(question.id)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
               title="Hapus Soal"
             >
               <span className="material-symbols-outlined text-[20px]">delete</span>
