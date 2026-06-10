@@ -28,7 +28,15 @@ exports.createPosition = async (req, res) => {
 exports.getAllPositions = async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.request().query('SELECT * FROM Positions ORDER BY id ASC');
+        const result = await pool.request().query(`
+            SELECT 
+                p.id, 
+                p.name,
+                (SELECT COUNT(*) FROM Users u WHERE u.position_id = p.id) as user_count,
+                (SELECT COUNT(*) FROM Modules m WHERE m.position_id = p.id) as module_count
+            FROM Positions p
+            ORDER BY p.id ASC
+        `);
         
         res.json({ data: result.recordset });
     } catch (error) {
