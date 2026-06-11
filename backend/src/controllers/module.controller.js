@@ -31,7 +31,7 @@ exports.createModule = async (req, res) => {
     }
 };
 
-// READ
+// READ (Dengan Injeksi Statistik Kelulusan)
 exports.getAllModules = async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -39,17 +39,37 @@ exports.getAllModules = async (req, res) => {
             SELECT 
                 m.*, 
                 p.name as position_name,
-                (SELECT COUNT(*) FROM Materials mat WHERE mat.module_id = m.id) AS materi_count
+                -- 1. Hitung jumlah materi dalam modul
+                (SELECT COUNT(*) FROM Materials mat WHERE mat.module_id = m.id) AS materi_count,
+                
+                -- 2. Hitung Total Karyawan (Target Audiens Modul Ini)
+                (SELECT COUNT(*) FROM Users u 
+                 WHERE u.role = 'operator' 
+                   AND u.is_active = 1 
+                   AND (u.position_id = m.position_id OR m.position_id IS NULL)
+                ) AS total_users,
+                
+                -- 3. Hitung Karyawan yang Sudah LULUS Post-Test
+                (SELECT COUNT(DISTINCT tr.user_id) 
+                 FROM Test_Results tr
+                 INNER JOIN Users u ON tr.user_id = u.id
+                 WHERE tr.module_id = m.id 
+                   AND tr.is_passed = 1
+                   AND u.role = 'operator'
+                   AND u.is_active = 1
+                ) AS completed_users
+                
             FROM Modules m
             LEFT JOIN Positions p ON m.position_id = p.id
             ORDER BY m.id DESC
         `);
         res.json({ data: result.recordset });
     } catch (error) {
-        console.error(error);
+        console.error("Error getAllModules:", error);
         res.status(500).json({ message: 'Gagal mengambil data modul' });
     }
 };
+
 // UPDATE
 exports.updateModule = async (req, res) => {
     try {

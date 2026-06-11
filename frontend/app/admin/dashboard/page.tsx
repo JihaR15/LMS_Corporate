@@ -195,12 +195,12 @@ export default async function AdminDashboardPage() {
             <h4 className="text-lg font-bold text-slate-800">
               Aktivitas Karyawan Terbaru
             </h4>
-            <button
+            {/* <button
               className="text-sm font-semibold hover:underline"
               style={{ color: "var(--primary)" }}
             >
               Lihat Semua
-            </button>
+            </button> */}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -240,8 +240,16 @@ export default async function AdminDashboardPage() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">
-                          {activity.module_title}
+                        <td className="px-6 py-4">
+                          <p className="text-sm font-bold text-slate-700">
+                            {activity.module_title}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">
+                              menu_book
+                            </span>
+                            {activity.material_title}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">

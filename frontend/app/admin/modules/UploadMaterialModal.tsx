@@ -67,7 +67,10 @@ export default function UploadMaterialModal({
   const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setUploadData((prev) => ({ ...prev, [name]: value }));
-    setSelectedFile(null); // Reset file jika tipe diganti
+
+    if (name === "type") {
+      setSelectedFile(null);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

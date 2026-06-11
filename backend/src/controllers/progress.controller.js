@@ -91,6 +91,7 @@ exports.getRecentActivities = async (req, res) => {
                 u.fullname AS employee_name,
                 u.nik,
                 mod.title AS module_title,
+                m.title AS material_title, -- KITA TAMBAHKAN BARIS INI
                 up.completed_at
             FROM User_Progress up
             JOIN Users u ON up.user_id = u.id
