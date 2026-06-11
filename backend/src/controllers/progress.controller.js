@@ -87,7 +87,7 @@ exports.getRecentActivities = async (req, res) => {
         const pool = await poolPromise;
 
         const result = await pool.request().query(`
-            SELECT TOP 5
+            SELECT TOP 3
                 u.fullname AS employee_name,
                 u.nik,
                 mod.title AS module_title,

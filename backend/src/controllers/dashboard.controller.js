@@ -23,7 +23,7 @@ exports.getPopularModules = async (req, res) => {
         const pool = await poolPromise;
 
         const result = await pool.request().query(`
-            SELECT TOP 3
+            SELECT TOP 5
                 mod.id,
                 mod.title,
                 ISNULL(CAST(AVG(tr.score) AS INT), 0) AS progress_percentage

@@ -1,16 +1,14 @@
 import React from "react";
 import { cookies } from "next/headers";
+import Link from "next/link";
 
 async function getUserProfile() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const result = await response.json();
     return result.data;
   } catch (error) {
@@ -73,12 +71,13 @@ async function getPopularModulesData() {
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, recentActivities, popularModules, userProfile] = await Promise.all([
-    getDashboardStatsData(),
-    getRecentActivitiesData(),
-    getPopularModulesData(),
-    getUserProfile(),
-  ]);
+  const [stats, recentActivities, popularModules, userProfile] =
+    await Promise.all([
+      getDashboardStatsData(),
+      getRecentActivitiesData(),
+      getPopularModulesData(),
+      getUserProfile(),
+    ]);
 
   return (
     <div className="space-y-6">
@@ -92,12 +91,12 @@ export default async function AdminDashboardPage() {
             Pantau perkembangan kompetensi karyawan dan kelola kurikulum
             pelatihan perusahaan dalam satu dashboard terintegrasi.
           </p>
-          <button
-            className="px-6 py-3 text-white font-semibold rounded-xl shadow-md transition-all duration-200"
-            style={{ backgroundColor: "var(--primary)" }}
+          <Link
+            href="/admin/modules"
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 inline-block text-center active:scale-95"
           >
             Buat Modul Baru
-          </button>
+          </Link>
         </div>
         {/* Dekorasi Visual */}
         <div className="absolute right-[-5%] top-[-20%] opacity-10 hidden md:block">
@@ -112,7 +111,7 @@ export default async function AdminDashboardPage() {
 
       {/* 2. Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stat Card 1 (Masih Statis) */}
+        {/* Stat Card 1 */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -138,7 +137,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Stat Card 2 (SUDAH DINAMIS) */}
+        {/* Stat Card 2 */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -161,7 +160,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Stat Card 3 (Masih Statis) */}
+        {/* Stat Card 3 */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
